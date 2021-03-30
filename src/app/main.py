@@ -1,8 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
 
-from .api import monitor, items
+from .api import monitor, customlayers
 from .db.db_engine import engine, database
 from .db.db_models import metadata
 
@@ -39,4 +38,4 @@ async def shutdown():
     await database.disconnect()
 
 app.include_router(monitor.router, prefix="/monitor", tags=["monitoring"])
-app.include_router(items.router, prefix="/items", tags=["items"])
+app.include_router(customlayers.router, prefix="/layers", tags=["layers"])

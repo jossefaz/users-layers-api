@@ -2,15 +2,15 @@ version: "3.7"
 
 services:
   web:
-    container_name: api
+    container_name: custom-layers-api
     build: ./src
-    command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+    command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8010
     volumes:
       - ./src/:/usr/src/app/
-    ports:
-      - 8006:8000
     environment:
-      - DATABASE_URL=postgresql://postgres:secret@db/gis_users
+      - DATABASE_URL=postgresql://postgres:secret@localhost:5436/gis_users
+      - CREDENTIALS_URL=http://localhost:8000/auth/credentials
+    network_mode: host
   db:
     image: postgres:12.1-alpine
     volumes:
@@ -21,5 +21,6 @@ services:
       - POSTGRES_DB=gis_users
     ports:
       - 5436:5432
+
 volumes:
   postgres_data:

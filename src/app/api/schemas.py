@@ -1,8 +1,14 @@
-from pydantic import BaseModel, Field
+from typing import Optional
+from geojson_pydantic.features import FeatureCollection
+
+from pydantic import BaseModel
 
 
-class Item(BaseModel):
-    name: str = Field(...)
+class TokenData(BaseModel):
+    username: Optional[str] = None
+    user_id: Optional[int]
 
-class PublicItem(BaseModel):
-    id:int
+
+class CustomLayer(BaseModel):
+    is_public: Optional[bool] = False
+    layer: FeatureCollection
