@@ -8,7 +8,7 @@ services:
     volumes:
       - ./src/:/usr/src/app/
     environment:
-      - DATABASE_URL=postgresql://postgres:secret@localhost:5436/gis_users
+      - DATABASE_URL=postgresql://postgres:secret@localhost:5436/custom_layers
       - CREDENTIALS_URL=http://localhost:8000/auth/credentials
     network_mode: host
   db:
@@ -18,7 +18,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=gis_users
+      - POSTGRES_DB=custom_layers
     ports:
       - 5436:5432
 

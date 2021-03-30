@@ -7,7 +7,7 @@ passlib
 python-multipart==0.0.5
 httpx
 geojson-pydantic
-
+jsonpickle
 # dev
 pytest
 requests

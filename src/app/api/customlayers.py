@@ -23,7 +23,7 @@ async def create_item(payload: CustomLayer, access_token: Optional[str] = Header
     if not layer:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Problem occured during item creation")
-    return layer.geojson
+    return FeatureCollection.parse_raw(layer.get("geojson"))
 
 
 @router.get("/{user_id}/{layer_id}", response_model=FeatureCollection, status_code=status.HTTP_200_OK)
@@ -40,4 +40,4 @@ async def get_item(user_id: int, layer_id, access_token: Optional[str] = Header(
         raise_401_exception()
     if user.id != user_id:
         raise_401_exception()
-    return layer.geojson
+    return layer.get("geojson")
