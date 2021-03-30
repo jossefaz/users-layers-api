@@ -11,7 +11,7 @@ from ..utils.token import check_user_credentials
 router = APIRouter()
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=FeatureCollection, status_code=status.HTTP_201_CREATED)
 async def create_item(payload: CustomLayer, access_token: Optional[str] = Header(None)):
     if not access_token:
         raise_401_exception()
@@ -23,7 +23,7 @@ async def create_item(payload: CustomLayer, access_token: Optional[str] = Header
     if not layer:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Problem occured during item creation")
-    return layer
+    return layer.geojson
 
 
 @router.get("/{user_id}/{layer_id}", response_model=FeatureCollection, status_code=status.HTTP_200_OK)
