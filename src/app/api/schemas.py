@@ -12,3 +12,4 @@ class TokenData(BaseModel):
 class CustomLayer(BaseModel):
     is_public: Optional[bool] = False
     layer: FeatureCollection
+
