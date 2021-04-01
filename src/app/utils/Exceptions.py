@@ -11,6 +11,6 @@ def raise_401_exception():
 
 def raise_404_exception():
     raise HTTPException(
-        status_code=status.HTTP_404_UNAUTHORIZED,
+        status_code=status.HTTP_404_NOT_FOUND,
         detail="Requested resource does not exist",
     )

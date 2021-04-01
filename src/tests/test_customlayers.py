@@ -30,6 +30,52 @@ VALID_PAYLOAD = {
     }
 }
 
+VALID_PUBLIC_LAYER = {
+    "user_id": 1,
+    "is_public": True,
+    "layer": {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "coordinates": [
+                        15, 15
+                    ],
+                    "type": "Point"
+                },
+                "properties": {},
+                "id": "string",
+                "bbox": None
+            }
+        ],
+        "bbox": None
+    }
+}
+
+VALID_PRIVATE_LAYER = {
+    "user_id": 1,
+    "is_public": False,
+    "layer": {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "coordinates": [
+                        15, 15
+                    ],
+                    "type": "Point"
+                },
+                "properties": {},
+                "id": "string",
+                "bbox": None
+            }
+        ],
+        "bbox": None
+    }
+}
+
 INVALID_PAYLOAD_GEOJSON_COORDINATE = {
     "is_public": False,
     "layer": {
@@ -87,7 +133,7 @@ def test_create_layer(test_app: TestClient, monkeypatch, customlayer_payload, to
         return 1
 
     async def mock_get_one(id: int):
-        return {"geojson": json.dumps(customlayer_payload["layer"])}
+        return {"id":1,"geojson": json.dumps(customlayer_payload["layer"])}
 
     test_app.headers["access-token"] = "some-dummy-token"
     monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
@@ -98,4 +144,33 @@ def test_create_layer(test_app: TestClient, monkeypatch, customlayer_payload, to
 
     assert response.status_code == expected_status_code
     if response.status_code == status.HTTP_201_CREATED:
-        assert response.json() == customlayer_payload["layer"]
+        assert response.json() == {"id":1, "status": "created"}
+
+
+@pytest.mark.parametrize(
+    "retrieved_layer, tokendata, expected_status_code",
+    [
+        [VALID_PUBLIC_LAYER, None, status.HTTP_200_OK],
+        [VALID_PRIVATE_LAYER, {"username": "john", "user_id": 1}, status.HTTP_200_OK],
+        [VALID_PRIVATE_LAYER, {"username": "notjohn", "user_id": 2}, status.HTTP_401_UNAUTHORIZED],
+        [None, None, status.HTTP_404_NOT_FOUND],
+        [None, {"username": "john", "user_id": 1}, status.HTTP_404_NOT_FOUND],
+    ]
+)
+def test_retrieve_layer(test_app: TestClient, monkeypatch, retrieved_layer, tokendata, expected_status_code):
+
+    async def mock_check_credentials(token: str):
+        return tokendata
+
+    async def mock_get_one(id: int):
+        if retrieved_layer:
+            return {"is_public":retrieved_layer["is_public"], "user_id": retrieved_layer["user_id"], "geojson": json.dumps(retrieved_layer["layer"])}
+        return None
+
+    test_app.headers["access-token"] = "some-dummy-token"
+    monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
+    monkeypatch.setattr(customlayers_repository, "get_one", mock_get_one)
+
+    response = test_app.get("/layers/1")
+
+    assert response.status_code == expected_status_code
