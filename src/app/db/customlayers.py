@@ -11,6 +11,10 @@ async def create(payload: CustomLayer, user:TokenData):
     return await database.execute(query=query)
 
 
+async def update(layer_id:int, payload: CustomLayer):
+    query = CustomLayersTable.update().where(layer_id == CustomLayersTable.c.id).values(geojson=payload.layer.json(), is_public=payload.is_public)
+    return await database.execute(query=query)
+
 async def get_one(id: int):
     query = CustomLayersTable.select().where(id == CustomLayersTable.c.id)
     return await database.fetch_one(query=query)
