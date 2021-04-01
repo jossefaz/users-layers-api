@@ -115,7 +115,7 @@ INVALID_PAYLOAD_GEOJSON_GEOM_TYPE = {
 
 
 @pytest.mark.parametrize(
-    "customlayer_payload, tokendata, expected_status_code",
+    "customlayer_payload, token_data, expected_status_code",
     [
         [VALID_PAYLOAD, {"username": "john", "user_id": 1}, status.HTTP_201_CREATED],
         [VALID_PAYLOAD, False, status.HTTP_401_UNAUTHORIZED],
@@ -125,11 +125,11 @@ INVALID_PAYLOAD_GEOJSON_GEOM_TYPE = {
          status.HTTP_422_UNPROCESSABLE_ENTITY],
     ]
 )
-def test_create_layer(test_app: TestClient, monkeypatch, customlayer_payload, tokendata, expected_status_code):
+def test_create_layer(test_app: TestClient, monkeypatch, customlayer_payload, token_data, expected_status_code):
     async def mock_check_credentials(token: str):
-        return tokendata
+        return token_data
 
-    async def mock_create(payload: CustomLayer, user: TokenData):
+    async def mock_create(payload: CustomLayer, user: token_data):
         return 1
 
     async def mock_get_one(id: int):
@@ -148,7 +148,7 @@ def test_create_layer(test_app: TestClient, monkeypatch, customlayer_payload, to
 
 
 @pytest.mark.parametrize(
-    "retrieved_layer, tokendata, expected_status_code",
+    "retrieved_layer, token_data, expected_status_code",
     [
         [VALID_PUBLIC_LAYER, None, status.HTTP_200_OK],
         [VALID_PRIVATE_LAYER, {"username": "john", "user_id": 1}, status.HTTP_200_OK],
@@ -157,9 +157,9 @@ def test_create_layer(test_app: TestClient, monkeypatch, customlayer_payload, to
         [None, {"username": "john", "user_id": 1}, status.HTTP_404_NOT_FOUND],
     ]
 )
-def test_retrieve_layer(test_app: TestClient, monkeypatch, retrieved_layer, tokendata, expected_status_code):
+def test_retrieve_layer(test_app: TestClient, monkeypatch, retrieved_layer, token_data, expected_status_code):
     async def mock_check_credentials(token: str):
-        return tokendata
+        return token_data
 
     async def mock_get_one(id: int):
         if retrieved_layer:
@@ -177,19 +177,19 @@ def test_retrieve_layer(test_app: TestClient, monkeypatch, retrieved_layer, toke
 
 
 @pytest.mark.parametrize(
-    "customlayer_payload, tokendata, expected_status_code",
+    "customlayer_payload, token_data, expected_status_code",
     [
         [VALID_PAYLOAD, {"username": "john", "id": 1}, status.HTTP_204_NO_CONTENT],
         [VALID_PAYLOAD, False, status.HTTP_401_UNAUTHORIZED],
-        [INVALID_PAYLOAD_GEOJSON_GEOM_TYPE, {"username": "john", "id": 1},
+        [INVALID_PAYLOAD_GEOJSON_GEOM_TYPE, {"username": "john", "user_id": 1},
          status.HTTP_422_UNPROCESSABLE_ENTITY],
-        [INVALID_PAYLOAD_GEOJSON_COORDINATE, {"username": "john", "id": 1},
+        [INVALID_PAYLOAD_GEOJSON_COORDINATE, {"username": "john", "user_id": 1},
          status.HTTP_422_UNPROCESSABLE_ENTITY],
     ]
 )
-def test_update_layer(test_app: TestClient, monkeypatch, customlayer_payload, tokendata, expected_status_code):
+def test_update_layer(test_app: TestClient, monkeypatch, customlayer_payload, token_data, expected_status_code):
     async def mock_check_credentials(token: str):
-        return tokendata
+        return token_data
 
     async def mock_get_one(id: int):
         return {"id": 1, "user_id": 1, "geojson": json.dumps(customlayer_payload["layer"])}
@@ -204,6 +204,31 @@ def test_update_layer(test_app: TestClient, monkeypatch, customlayer_payload, to
 
     response = test_app.put("/layers/1", data=json.dumps(customlayer_payload))
 
+    assert response.status_code == expected_status_code
+    
+@pytest.mark.parametrize(
+    "retrieved_custom_layer, token_data, expected_status_code",
+    [
+        [VALID_PUBLIC_LAYER, {"username": "john", "user_id": 1}, status.HTTP_204_NO_CONTENT],
+        [None, {"username": "john", "user_id": 1}, status.HTTP_404_NOT_FOUND],
+        [None, None, status.HTTP_401_UNAUTHORIZED]
+    ]
+)
+def test_delete_layer(test_app:TestClient, monkeypatch, retrieved_custom_layer, token_data, expected_status_code):
+    async def mock_check_credentials(token: str):
+        return token_data
+
+    async def mock_get_one(id: int):
+        return retrieved_custom_layer
+
+    async def mock_delete(payload, layer_id):
+        return 1
+
+    test_app.headers["access-token"] = "some-dummy-token"
+    monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
+    monkeypatch.setattr(customlayers_repository, "update", mock_delete)
+    monkeypatch.setattr(customlayers_repository, "get_one", mock_get_one)
+    response = test_app.delete("/layers/1")
     assert response.status_code == expected_status_code
 
 

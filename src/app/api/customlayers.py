@@ -42,7 +42,6 @@ async def get_item(layer_id:int, access_token: Optional[str] = Header(None)):
         raise_404_exception()
     if user["user_id"] != layer_record.get("user_id"):
         raise_401_exception()
-
     return FeatureCollection.parse_raw(layer_record.get("geojson"))
 
 @router.put("/{id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -61,5 +60,20 @@ async def create_item(id:int, payload: CustomLayer, access_token: Optional[str] 
     if not layer_record:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Problem occured during item creation")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.delete("/{layer_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_item(layer_id:int, access_token: Optional[str] = Header(None)):
+    if not access_token:
+        raise_401_exception()
+    user = await token.check_user_credentials(access_token)
+    if not user:
+        raise_401_exception()
+    layer_record = await customlayers_repository.get_one(layer_id)
+    if not layer_record:
+        raise_404_exception()
+    if user["user_id"] != layer_record.get("user_id"):
+        raise_401_exception()
+    await customlayers_repository.delete(layer_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
