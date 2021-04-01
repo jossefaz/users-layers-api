@@ -153,7 +153,7 @@ def test_create_layer(test_app: TestClient, monkeypatch, customlayer_payload, to
         [VALID_PUBLIC_LAYER, None, status.HTTP_200_OK],
         [VALID_PRIVATE_LAYER, {"username": "john", "user_id": 1}, status.HTTP_200_OK],
         [VALID_PRIVATE_LAYER, {"username": "notjohn", "user_id": 2}, status.HTTP_401_UNAUTHORIZED],
-        [None, None, status.HTTP_404_NOT_FOUND],
+        [None, None, status.HTTP_401_UNAUTHORIZED],
         [None, {"username": "john", "user_id": 1}, status.HTTP_404_NOT_FOUND],
     ]
 )
@@ -205,3 +205,5 @@ def test_update_layer(test_app: TestClient, monkeypatch, customlayer_payload, to
     response = test_app.put("/layers/1", data=json.dumps(customlayer_payload))
 
     assert response.status_code == expected_status_code
+
+
