@@ -32,6 +32,7 @@ VALID_PAYLOAD = {
 
 VALID_PUBLIC_LAYER = {
     "user_id": 1,
+    "id" : 1,
     "is_public": True,
     "layer": {
         "type": "FeatureCollection",
@@ -55,6 +56,7 @@ VALID_PUBLIC_LAYER = {
 
 VALID_PRIVATE_LAYER = {
     "user_id": 1,
+    "id": 2,
     "is_public": False,
     "layer": {
         "type": "FeatureCollection",
@@ -132,13 +134,13 @@ def test_create_layer(test_app: TestClient, monkeypatch, customlayer_payload, to
     async def mock_create(payload: CustomLayer, user: token_data):
         return 1
 
-    async def mock_get_one(id: int):
-        return {"id": 1, "geojson": json.dumps(customlayer_payload["layer"])}
+    async def mock_retrieve_by_id(id: int):
+        return {"id": 1, "data": json.dumps(customlayer_payload["layer"])}
 
     test_app.headers["access-token"] = "some-dummy-token"
     monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
     monkeypatch.setattr(customlayers_repository, "create", mock_create)
-    monkeypatch.setattr(customlayers_repository, "get_one", mock_get_one)
+    monkeypatch.setattr(customlayers_repository, "retrieve_by_id", mock_retrieve_by_id)
 
     response = test_app.post("/layers/", data=json.dumps(customlayer_payload))
 
@@ -161,15 +163,15 @@ def test_retrieve_layer(test_app: TestClient, monkeypatch, retrieved_layer, toke
     async def mock_check_credentials(token: str):
         return token_data
 
-    async def mock_get_one(id: int):
+    async def mock_retrieve_by_id(id: int):
         if retrieved_layer:
             return {"is_public": retrieved_layer["is_public"], "user_id": retrieved_layer["user_id"],
-                    "geojson": json.dumps(retrieved_layer["layer"])}
+                    "data": json.dumps(retrieved_layer["layer"])}
         return None
 
     test_app.headers["access-token"] = "some-dummy-token"
     monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
-    monkeypatch.setattr(customlayers_repository, "get_one", mock_get_one)
+    monkeypatch.setattr(customlayers_repository, "retrieve_by_id", mock_retrieve_by_id)
 
     response = test_app.get("/layers/1")
 
@@ -191,8 +193,8 @@ def test_update_layer(test_app: TestClient, monkeypatch, customlayer_payload, to
     async def mock_check_credentials(token: str):
         return token_data
 
-    async def mock_get_one(id: int):
-        return {"id": 1, "user_id": 1, "geojson": json.dumps(customlayer_payload["layer"])}
+    async def mock_retrieve_by_id(id: int):
+        return {"id": 1, "user_id": 1, "data": json.dumps(customlayer_payload["layer"])}
 
     async def mock_update(payload, layer_id):
         return 1
@@ -200,7 +202,7 @@ def test_update_layer(test_app: TestClient, monkeypatch, customlayer_payload, to
     test_app.headers["access-token"] = "some-dummy-token"
     monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
     monkeypatch.setattr(customlayers_repository, "update", mock_update)
-    monkeypatch.setattr(customlayers_repository, "get_one", mock_get_one)
+    monkeypatch.setattr(customlayers_repository, "retrieve_by_id", mock_retrieve_by_id)
 
     response = test_app.put("/layers/1", data=json.dumps(customlayer_payload))
 
@@ -218,7 +220,7 @@ def test_delete_layer(test_app:TestClient, monkeypatch, retrieved_custom_layer, 
     async def mock_check_credentials(token: str):
         return token_data
 
-    async def mock_get_one(id: int):
+    async def mock_retrieve_by_id(id: int):
         return retrieved_custom_layer
 
     async def mock_delete(payload, layer_id):
@@ -227,8 +229,33 @@ def test_delete_layer(test_app:TestClient, monkeypatch, retrieved_custom_layer, 
     test_app.headers["access-token"] = "some-dummy-token"
     monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
     monkeypatch.setattr(customlayers_repository, "update", mock_delete)
-    monkeypatch.setattr(customlayers_repository, "get_one", mock_get_one)
+    monkeypatch.setattr(customlayers_repository, "retrieve_by_id", mock_retrieve_by_id)
     response = test_app.delete("/layers/1")
     assert response.status_code == expected_status_code
+
+
+@pytest.mark.parametrize(
+    "retrieved_custom_layers, token_data, expected_status_code",
+    [
+        [[VALID_PUBLIC_LAYER, VALID_PRIVATE_LAYER], {"username": "john", "user_id": 1}, status.HTTP_200_OK],
+        [None, {"username": "john", "user_id": 1}, status.HTTP_404_NOT_FOUND],
+        [None, None, status.HTTP_401_UNAUTHORIZED]
+    ]
+)
+def test_retrieve_all_user_layers(test_app:TestClient, monkeypatch, retrieved_custom_layers, token_data, expected_status_code):
+    async def mock_check_credentials(token: str):
+        return token_data
+
+    async def mock_retrieve_by_user_id(id: int):
+        return retrieved_custom_layers
+
+    test_app.headers["access-token"] = "some-dummy-token"
+    monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
+    monkeypatch.setattr(customlayers_repository, "retrieve_by_user_id", mock_retrieve_by_user_id)
+
+    response = test_app.get("/layers/?user_id=8")
+    assert response.status_code == expected_status_code
+    if response.status_code == status.HTTP_200_OK:
+        assert len(response.json()) == 2
 
 
