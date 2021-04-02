@@ -27,7 +27,7 @@ async def create_item(payload: CustomLayer, access_token: Optional[str] = Header
 
 
 @router.get("/", response_model=List[CustomLayerResponse], status_code=status.HTTP_200_OK)
-async def retrieve_by_user(user_id: int, access_token: str = Header(None)):
+async def retrieve_by_user(user_id: int, access_token: Optional[str] = Header(None)):
     if not access_token:
         raise_401_exception()
     user = await token.check_user_credentials(access_token)
@@ -97,6 +97,18 @@ async def delete_layer(layer_id: int, access_token: Optional[str] = Header(None)
         raise_401_exception()
     await customlayers_repository.delete(layer_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_all_layers_by_user(user_id: int, access_token: Optional[str] = Header(None)):
+    if not access_token:
+        raise_401_exception()
+    user = await token.check_user_credentials(access_token)
+    if not user or user["user_id"] != user_id:
+        raise_401_exception()
+    await customlayers_repository.delete_by_user_id(user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 
 
 

@@ -28,3 +28,8 @@ async def retrieve_by_id(layer_id: int):
 async def delete(layer_id: int):
     query = CustomLayersTable.delete().where(layer_id == CustomLayersTable.c.id)
     return await database.execute(query=query)
+
+
+async def delete_by_user_id(user_id: int):
+    query = CustomLayersTable.delete().where(user_id == CustomLayersTable.c.user_id)
+    return await database.execute(query=query)

@@ -32,7 +32,7 @@ VALID_PAYLOAD = {
 
 VALID_PUBLIC_LAYER = {
     "user_id": 1,
-    "id" : 1,
+    "id": 1,
     "is_public": True,
     "layer": {
         "type": "FeatureCollection",
@@ -207,7 +207,8 @@ def test_update_layer(test_app: TestClient, monkeypatch, customlayer_payload, to
     response = test_app.put("/layers/1", data=json.dumps(customlayer_payload))
 
     assert response.status_code == expected_status_code
-    
+
+
 @pytest.mark.parametrize(
     "retrieved_custom_layer, token_data, expected_status_code",
     [
@@ -216,7 +217,7 @@ def test_update_layer(test_app: TestClient, monkeypatch, customlayer_payload, to
         [None, None, status.HTTP_401_UNAUTHORIZED]
     ]
 )
-def test_delete_layer(test_app:TestClient, monkeypatch, retrieved_custom_layer, token_data, expected_status_code):
+def test_delete_layer(test_app: TestClient, monkeypatch, retrieved_custom_layer, token_data, expected_status_code):
     async def mock_check_credentials(token: str):
         return token_data
 
@@ -242,7 +243,8 @@ def test_delete_layer(test_app:TestClient, monkeypatch, retrieved_custom_layer, 
         [None, None, status.HTTP_401_UNAUTHORIZED]
     ]
 )
-def test_retrieve_all_user_layers(test_app:TestClient, monkeypatch, retrieved_custom_layers, token_data, expected_status_code):
+def test_retrieve_all_user_layers(test_app: TestClient, monkeypatch, retrieved_custom_layers, token_data,
+                                  expected_status_code):
     async def mock_check_credentials(token: str):
         return token_data
 
@@ -259,3 +261,24 @@ def test_retrieve_all_user_layers(test_app:TestClient, monkeypatch, retrieved_cu
         assert len(response.json()) == 2
 
 
+@pytest.mark.parametrize(
+    "user_id , token_data, expected_status_code",
+    [
+        [1, {"username": "john", "user_id": 1}, status.HTTP_204_NO_CONTENT],
+        [2, {"username": "john", "user_id": 1}, status.HTTP_401_UNAUTHORIZED],
+        [2, None, status.HTTP_401_UNAUTHORIZED],
+    ]
+)
+def test_delete_all_user_layers(test_app: TestClient, monkeypatch, user_id, token_data, expected_status_code):
+    async def mock_check_credentials(token: str):
+        return token_data
+
+    async def mock_delete_by_user_id(id: int):
+        return True
+
+    test_app.headers["access-token"] = "some-dummy-token"
+    monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
+    monkeypatch.setattr(customlayers_repository, "delete_by_user_id", mock_delete_by_user_id)
+
+    response = test_app.delete(f"/layers/?user_id={user_id}")
+    assert response.status_code == expected_status_code
