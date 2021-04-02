@@ -17,5 +17,4 @@ class CustomLayer(BaseModel):
 class CustomLayerResponse(BaseModel):
     is_public: bool
     user_id: int
-    data:FeatureCollection
     id: int
