@@ -34,16 +34,9 @@ async def retrieve_by_user(user_id: int, access_token: Optional[str] = Header(No
     if not user:
         raise_401_exception()
     layer_records = await customlayers_repository.retrieve_by_user_id(user_id)
-    response = []
     if not layer_records:
         raise_404_exception()
-    for l in layer_records:
-        manual_instance = CustomLayerResponse(
-                                user_id=l.get("user_id"),
-                                id=l.get("id"),
-                                is_public=l.get("is_public"))
-        response.append(manual_instance)
-    return response
+    return layer_records
 
 
 
