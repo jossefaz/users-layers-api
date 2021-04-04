@@ -10,6 +10,7 @@ from ..app.db import customlayers as customlayers_repository
 
 VALID_PAYLOAD = {
     "is_public": False,
+    "layer_name" : "test",
     "layer": {
         "type": "FeatureCollection",
         "features": [
@@ -33,6 +34,7 @@ VALID_PAYLOAD = {
 VALID_PUBLIC_LAYER = {
     "user_id": 1,
     "id": 1,
+    "layer_name": "test",
     "is_public": True,
     "layer": {
         "type": "FeatureCollection",
@@ -57,6 +59,7 @@ VALID_PUBLIC_LAYER = {
 VALID_PRIVATE_LAYER = {
     "user_id": 1,
     "id": 2,
+    "layer_name": "test",
     "is_public": False,
     "layer": {
         "type": "FeatureCollection",
@@ -80,6 +83,7 @@ VALID_PRIVATE_LAYER = {
 
 INVALID_PAYLOAD_GEOJSON_COORDINATE = {
     "is_public": False,
+    "layer_name": "test",
     "layer": {
         "type": "FeatureCollection",
         "features": [
@@ -97,6 +101,7 @@ INVALID_PAYLOAD_GEOJSON_COORDINATE = {
 
 INVALID_PAYLOAD_GEOJSON_GEOM_TYPE = {
     "is_public": False,
+    "layer_name": "test",
     "layer": {
         "type": "FeatureCollection",
         "features": [
@@ -282,3 +287,12 @@ def test_delete_all_user_layers(test_app: TestClient, monkeypatch, user_id, toke
 
     response = test_app.delete(f"/layers/?user_id={user_id}")
     assert response.status_code == expected_status_code
+
+
+def test_retrieve_all_public_layer(test_app: TestClient, monkeypatch):
+    async def mock_retrieve_all_public_layers():
+        return [VALID_PUBLIC_LAYER]
+
+    monkeypatch.setattr(customlayers_repository, "retrieve_all_public_layers", mock_retrieve_all_public_layers)
+    response = test_app.get("/layers")
+    assert response.status_code == status.HTTP_200_OK

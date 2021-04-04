@@ -5,18 +5,25 @@ from ..api.schemas import TokenData, CustomLayer
 
 async def create(payload: CustomLayer, user: TokenData):
     query = CustomLayersTable.insert().values(data=payload.layer.json(), user_id=user["user_id"],
-                                              is_public=payload.is_public)
+                                              is_public=payload.is_public,
+                                              layer_name=payload.layer_name)
     return await database.execute(query=query)
 
 
 async def update(layer_id: int, payload: CustomLayer):
     query = CustomLayersTable.update().where(layer_id == CustomLayersTable.c.id).values(data=payload.layer.json(),
-                                                                                        is_public=payload.is_public)
+                                                                                        is_public=payload.is_public,
+                                                                                        layer_name=payload.layer_name)
     return await database.execute(query=query)
 
 
 async def retrieve_by_user_id(user_id: int):
     query = CustomLayersTable.select().where(user_id == CustomLayersTable.c.user_id)
+    return await database.fetch_all(query=query)
+
+
+async def retrieve_all_public_layers():
+    query = CustomLayersTable.select().where(CustomLayersTable.c.is_public == True)
     return await database.fetch_all(query=query)
 
 
