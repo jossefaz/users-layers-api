@@ -2,9 +2,9 @@ from typing import List, Optional
 
 from ..db import customlayers as layers_repository
 from geojson_pydantic.features import FeatureCollection
-from fastapi import APIRouter, HTTPException, status, Header, Response, Path
+from fastapi import APIRouter, status, Header, Response, Path
 from .schemas import CustomLayer, CustomLayerResponse
-from ..utils.Exceptions import raise_401_exception, raise_404_exception
+from ..utils.Exceptions import raise_401_exception, raise_404_exception, raise_500_exception
 from ..utils import token
 
 router = APIRouter()
@@ -20,8 +20,7 @@ async def create_item(payload: CustomLayer, access_token: Optional[str] = Header
     layer_id = await layers_repository.create(payload, user)
     layer_record = await layers_repository.retrieve_by_id(layer_id)
     if not layer_record:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Problem occurred during item creation")
+        raise_500_exception("Problem occurred during item creation")
     return {"id": layer_record.get("id"), "status": "created"}
 
 
@@ -72,8 +71,7 @@ async def update_layer(layer_id: int, payload: CustomLayer, access_token: Option
     print("layer id is: ", layer_id)
     layer_record = await layers_repository.retrieve_by_id(layer_id)
     if not layer_record:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Problem occurred during item creation")
+        raise_500_exception("Problem occurred during item update")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
