@@ -12,7 +12,7 @@ services:
       - CREDENTIALS_URL=http://localhost:8000/auth/credentials
     network_mode: host
   db:
-    image: postgres
+    image: postgres:alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
