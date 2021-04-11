@@ -9,7 +9,7 @@ services:
       - ./src/:/usr/src/app/
     environment:
       - DATABASE_URL=postgresql://postgres:secret@localhost:5436/custom_layers
-      - CREDENTIALS_URL=http://localhost:8000/auth/credentials
+      - CREDENTIALS_URL=http://localhost:8040/auth/credentials
     network_mode: host
   db:
     image: postgres:12.1-alpine
