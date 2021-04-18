@@ -5,7 +5,7 @@ from geojson_pydantic.features import FeatureCollection
 from fastapi import APIRouter, status, Header, Response, Path
 from .schemas import CustomLayer, CustomLayerResponse
 from ..utils.Exceptions import raise_401_exception, raise_404_exception, raise_500_exception
-from ..utils import token
+from ..utils.http import HTTPFactory
 
 router = APIRouter()
 
@@ -14,7 +14,7 @@ router = APIRouter()
 async def create_item(payload: CustomLayer, access_token: Optional[str] = Header(None)):
     if not access_token:
         raise_401_exception()
-    user = await token.check_user_credentials(access_token)
+    user = await HTTPFactory.instance.check_user_credentials(access_token)
     if not user:
         raise_401_exception()
     layer_id = await layers_repository.create(payload, user)
@@ -31,7 +31,7 @@ async def retrieve_by_user(user_id: Optional[int] = None, access_token: Optional
         return public_layer_records
     if access_token is None:
         raise_401_exception()
-    user = await token.check_user_credentials(access_token)
+    user = await HTTPFactory.instance.check_user_credentials(access_token)
     if not user:
         raise_401_exception()
     layer_records = await layers_repository.retrieve_by_user_id(user_id)
@@ -47,7 +47,7 @@ async def retrieve_by_id(layer_id: int, access_token: Optional[str] = Header(Non
         return FeatureCollection.parse_raw(layer_record.get("data"))
     if not access_token:
         raise_401_exception()
-    user = await token.check_user_credentials(access_token)
+    user = await HTTPFactory.instance.check_user_credentials(access_token)
     if not user:
         raise_401_exception()
     if not layer_record:
@@ -61,7 +61,7 @@ async def retrieve_by_id(layer_id: int, access_token: Optional[str] = Header(Non
 async def update_layer(layer_id: int, payload: CustomLayer, access_token: Optional[str] = Header(None)):
     if not access_token:
         raise_401_exception()
-    user = await token.check_user_credentials(access_token)
+    user = await HTTPFactory.instance.check_user_credentials(access_token)
     if not user:
         raise_401_exception()
     layer_record = await layers_repository.retrieve_by_id(layer_id)
@@ -79,7 +79,7 @@ async def update_layer(layer_id: int, payload: CustomLayer, access_token: Option
 async def delete_layer(layer_id: int, access_token: Optional[str] = Header(None)):
     if not access_token:
         raise_401_exception()
-    user = await token.check_user_credentials(access_token)
+    user = await HTTPFactory.instance.check_user_credentials(access_token)
     if not user:
         raise_401_exception()
     layer_record = await layers_repository.retrieve_by_id(layer_id)
@@ -95,7 +95,7 @@ async def delete_layer(layer_id: int, access_token: Optional[str] = Header(None)
 async def delete_all_layers_by_user(user_id: int, access_token: Optional[str] = Header(None)):
     if not access_token:
         raise_401_exception()
-    user = await token.check_user_credentials(access_token)
+    user = await HTTPFactory.instance.check_user_credentials(access_token)
     if not user or user["user_id"] != user_id:
         raise_401_exception()
     await layers_repository.delete_by_user_id(user_id)

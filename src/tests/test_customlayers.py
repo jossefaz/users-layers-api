@@ -5,7 +5,7 @@ from fastapi import status
 from starlette.testclient import TestClient
 
 from ..app.api.schemas import CustomLayer, TokenData
-from ..app.utils import token
+from ..app.utils.http import HTTPFactory
 from ..app.db import customlayers as customlayers_repository
 
 VALID_PAYLOAD = {
@@ -144,7 +144,7 @@ def test_create_layer(test_app: TestClient, monkeypatch, customlayer_payload, ac
         return {"id": 1, "data": json.dumps(customlayer_payload["layer"])}
 
     test_app.headers["access-token"] = access_token
-    monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
+    monkeypatch.setattr(HTTPFactory.instance, "check_user_credentials", mock_check_credentials)
     monkeypatch.setattr(customlayers_repository, "create", mock_create)
     monkeypatch.setattr(customlayers_repository, "retrieve_by_id", mock_retrieve_by_id)
 
@@ -177,7 +177,7 @@ def test_retrieve_layer(test_app: TestClient, monkeypatch, retrieved_layer, acce
         return None
 
     test_app.headers["access-token"] = access_token
-    monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
+    monkeypatch.setattr(HTTPFactory.instance, "check_user_credentials", mock_check_credentials)
     monkeypatch.setattr(customlayers_repository, "retrieve_by_id", mock_retrieve_by_id)
 
     response = test_app.get("/layers/1")
@@ -208,7 +208,7 @@ def test_update_layer(test_app: TestClient, monkeypatch, customlayer_payload, ac
         return 1
 
     test_app.headers["access-token"] = access_token
-    monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
+    monkeypatch.setattr(HTTPFactory.instance, "check_user_credentials", mock_check_credentials)
     monkeypatch.setattr(customlayers_repository, "update", mock_update)
     monkeypatch.setattr(customlayers_repository, "retrieve_by_id", mock_retrieve_by_id)
 
@@ -237,7 +237,7 @@ def test_delete_layer(test_app: TestClient, monkeypatch, retrieved_custom_layer,
         return 1
 
     test_app.headers["access-token"] = access_token
-    monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
+    monkeypatch.setattr(HTTPFactory.instance, "check_user_credentials", mock_check_credentials)
     monkeypatch.setattr(customlayers_repository, "update", mock_delete)
     monkeypatch.setattr(customlayers_repository, "retrieve_by_id", mock_retrieve_by_id)
     response = test_app.delete("/layers/1")
@@ -262,7 +262,7 @@ def test_retrieve_all_user_layers(test_app: TestClient, monkeypatch, retrieved_c
         return retrieved_custom_layers
 
     test_app.headers["access-token"] = access_token
-    monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
+    monkeypatch.setattr(HTTPFactory.instance, "check_user_credentials", mock_check_credentials)
     monkeypatch.setattr(customlayers_repository, "retrieve_by_user_id", mock_retrieve_by_user_id)
 
     response = test_app.get("/layers/?user_id=8")
@@ -288,7 +288,7 @@ def test_delete_all_user_layers(test_app: TestClient, monkeypatch, user_id, acce
         return True
 
     test_app.headers["access-token"] = access_token
-    monkeypatch.setattr(token, "check_user_credentials", mock_check_credentials)
+    monkeypatch.setattr(HTTPFactory.instance, "check_user_credentials", mock_check_credentials)
     monkeypatch.setattr(customlayers_repository, "delete_by_user_id", mock_delete_by_user_id)
 
     response = test_app.delete(f"/layers/?user_id={user_id}")
