@@ -10,6 +10,7 @@ from .db.db_models import metadata
 from .utils.http import HTTPFactory
 from .utils.logs import RestLogger, log_http_request, log_http_response
 
+RestLogger.init_logger()
 metadata.create_all(engine)
 
 
