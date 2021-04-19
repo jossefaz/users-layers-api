@@ -29,7 +29,7 @@ async def retrieve_all_public_layers():
     query = CustomLayersTable.select().where(CustomLayersTable.c.is_public == True)
     layers_found = await database.fetch_all(query=query)
     log_sql_query(sql_query=query, record_num=len(layers_found))
-    return await layers_found
+    return layers_found
 
 
 async def retrieve_by_id(layer_id: int):
