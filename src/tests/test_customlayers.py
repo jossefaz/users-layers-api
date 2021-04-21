@@ -135,7 +135,9 @@ INVALID_PAYLOAD_GEOJSON_GEOM_TYPE = {
 def test_create_layer(test_app: TestClient, monkeypatch, customlayer_payload, access_token, token_data,
                       expected_status_code):
     async def mock_check_credentials(token: str):
-        return token_data
+        if access_token:
+            return token_data, access_token
+        return None, None
 
     async def mock_create(payload: CustomLayer, user: token_data):
         return 1
@@ -168,7 +170,9 @@ def test_create_layer(test_app: TestClient, monkeypatch, customlayer_payload, ac
 def test_retrieve_layer(test_app: TestClient, monkeypatch, retrieved_layer, access_token, token_data,
                         expected_status_code):
     async def mock_check_credentials(token: str):
-        return token_data
+        if access_token:
+            return token_data, access_token
+        return None, None
 
     async def mock_retrieve_by_id(id: int):
         if retrieved_layer:
@@ -199,7 +203,9 @@ def test_retrieve_layer(test_app: TestClient, monkeypatch, retrieved_layer, acce
 def test_update_layer(test_app: TestClient, monkeypatch, customlayer_payload, access_token, token_data,
                       expected_status_code):
     async def mock_check_credentials(token: str):
-        return token_data
+        if access_token:
+            return token_data, access_token
+        return None, None
 
     async def mock_retrieve_by_id(id: int):
         return {"id": 1, "user_id": 1, "data": json.dumps(customlayer_payload["layer"])}
@@ -228,7 +234,9 @@ def test_update_layer(test_app: TestClient, monkeypatch, customlayer_payload, ac
 def test_delete_layer(test_app: TestClient, monkeypatch, retrieved_custom_layer, access_token, token_data,
                       expected_status_code):
     async def mock_check_credentials(token: str):
-        return token_data
+        if access_token:
+            return token_data, access_token
+        return None, None
 
     async def mock_retrieve_by_id(id: int):
         return retrieved_custom_layer
@@ -256,7 +264,9 @@ def test_delete_layer(test_app: TestClient, monkeypatch, retrieved_custom_layer,
 def test_retrieve_all_user_layers(test_app: TestClient, monkeypatch, retrieved_custom_layers, access_token, token_data,
                                   expected_status_code):
     async def mock_check_credentials(token: str):
-        return token_data
+        if access_token:
+            return token_data, access_token
+        return None, None
 
     async def mock_retrieve_by_user_id(id: int):
         return retrieved_custom_layers
@@ -282,7 +292,9 @@ def test_retrieve_all_user_layers(test_app: TestClient, monkeypatch, retrieved_c
 def test_delete_all_user_layers(test_app: TestClient, monkeypatch, user_id, access_token, token_data,
                                 expected_status_code):
     async def mock_check_credentials(token: str):
-        return token_data
+        if access_token:
+            return token_data, access_token
+        return None, None
 
     async def mock_delete_by_user_id(id: int):
         return True
