@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_item(request: Request, payload: CustomLayer, access_token: Optional[str] = Header(None)):
+async def create_item(request: Request, payload: CustomLayer, token: Optional[str] = Header(None)):
     if not request.state.user:
         raise_401_exception()
     layer_id = await layers_repository.create(payload, request.state.user)
@@ -21,7 +21,7 @@ async def create_item(request: Request, payload: CustomLayer, access_token: Opti
 
 
 @router.get("/", response_model=List[CustomLayerResponse], status_code=status.HTTP_200_OK)
-async def retrieve_by_user(request: Request, user_id: Optional[int] = None, access_token: Optional[str] = Header(None)):
+async def retrieve_by_user(request: Request, user_id: Optional[int] = None, token: Optional[str] = Header(None)):
     if user_id is None:
         public_layer_records = await layers_repository.retrieve_all_public_layers()
         return public_layer_records
@@ -34,7 +34,7 @@ async def retrieve_by_user(request: Request, user_id: Optional[int] = None, acce
 
 
 @router.get("/{layer_id}", response_model=FeatureCollection, status_code=status.HTTP_200_OK)
-async def retrieve_by_id(request: Request, layer_id: int, access_token: Optional[str] = Header(None)):
+async def retrieve_by_id(request: Request, layer_id: int, token: Optional[str] = Header(None)):
     layer_record = await layers_repository.retrieve_by_id(layer_id)
     if layer_record and layer_record.get("is_public"):
         return FeatureCollection.parse_raw(layer_record.get("data"))
@@ -49,7 +49,7 @@ async def retrieve_by_id(request: Request, layer_id: int, access_token: Optional
 
 @router.put("/{layer_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def update_layer(request: Request, layer_id: int, payload: CustomLayer,
-                       access_token: Optional[str] = Header(None)):
+                       token: Optional[str] = Header(None)):
     if not request.state.user:
         raise_401_exception()
     layer_record = await layers_repository.retrieve_by_id(layer_id)
@@ -64,7 +64,7 @@ async def update_layer(request: Request, layer_id: int, payload: CustomLayer,
 
 
 @router.delete("/{layer_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_layer(request: Request, layer_id: int, access_token: Optional[str] = Header(None)):
+async def delete_layer(request: Request, layer_id: int, token: Optional[str] = Header(None)):
     if not request.state.user:
         raise_401_exception()
     layer_record = await layers_repository.retrieve_by_id(layer_id)
@@ -77,7 +77,7 @@ async def delete_layer(request: Request, layer_id: int, access_token: Optional[s
 
 
 @router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_all_layers_by_user(request: Request, user_id: int, access_token: Optional[str] = Header(None)):
+async def delete_all_layers_by_user(request: Request, user_id: int, token: Optional[str] = Header(None)):
     if not request.state.user or request.state.user["user_id"] != user_id:
         raise_401_exception()
     await layers_repository.delete_by_user_id(user_id)

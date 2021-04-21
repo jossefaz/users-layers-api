@@ -10,6 +10,9 @@ services:
     environment:
       - DATABASE_URL=postgresql://postgres:secret@localhost:5436/custom_layers
       - CREDENTIALS_URL=http://localhost:8040/auth/credentials
+      - ACCESS_TOKEN_KEY=access-token
+      - REQUEST_ID_KEY=X-Request-ID
+      - REQUEST_TIME_KEY=X-Process-Time
     network_mode: host
   db:
     image: postgres:12.1-alpine
